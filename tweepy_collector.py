@@ -19,25 +19,30 @@ class Listener(StreamListener):
 
     def on_data(self, data):
         all_data = json.loads(data)
+        if str(all_data["user"]["lang"]) in ["de", "de-AT", "AT"]:
+            print(all_data["text"])
+            tweet = all_data["text"]
+            loc = all_data["user"]["location"]
+            username = all_data["user"]["screen_name"]
+            time = str(datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).time()).split('.')[0]
+            date = datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).date().strftime("%d.%m.%Y")
 
-        tweet = all_data["text"]
-        loc = all_data["user"]["location"]
-        username = all_data["user"]["screen_name"]
-        time = str(datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).time()).split('.')[0]
-        date = datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).date().strftime("%d.%m.%Y")
+            # check company mentioned
+            flixbus = self.check_keywords(["fernbus", "flixbus"], str(all_data).lower())
+            blablacar = self.check_keywords(["mitfahrgelegenheit", "blablacar"], str(all_data).lower())
+            bahn = self.check_keywords(["bahn", "zug", "db", "diebahn", "deutschebahn"], str(all_data).lower())
 
-        # check company mentioned
-        flixbus = self.check_keywords(["fernbus", "flixbus"], str(all_data).lower())
-        blablacar = self.check_keywords(["mitfahrgelegenheit", "blablacar"], str(all_data).lower())
-        bahn = self.check_keywords(["bahn", "zug", "db", "diebahn", "deutschebahn"], str(all_data).lower())
+            if "," in str(loc):
+                try:
+                    city, country = str(loc).split(",")
+                except:
+                    city = ""
+                    country = loc
+            else:
+                city = ""
+                country = loc
 
-        if "," in str(loc):
-            city, country = str(loc).split(",")
-        else:
-            city = ""
-            country = loc
-
-        self.write_to_csv([username, time, date, city, tweet, flixbus, bahn, blablacar, country])
+            self.write_to_csv([username, time, date, city, tweet, flixbus, bahn, blablacar, country])
 
         return True
 
