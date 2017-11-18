@@ -1,4 +1,3 @@
-#Import the necessary methods from tweepy library
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -7,6 +6,9 @@ import json
 import datetime
 import os
 
+"""
+Script for collecting relevant data from the twitter-API.
+"""
 # Variables that contains the user credentials to access Twitter API
 access_token = "3300412775-SvHfqR5eewVZIhFrGNExiejLneYtYkm8tOrqjBM"
 access_token_secret = "BWqGuI9bgAVKrDHS8N4dBJTtgV4vmz4iZS94SHGXunoiT"
@@ -16,8 +18,15 @@ headers = ["username", "time", "date", "city", "tweet", "flixbus", "bahn", "blab
 
 
 class Listener(StreamListener):
+    """
+    Extracts relevant data fields from collected posts and saves them to a .csv-File.
+    """
 
     def on_data(self, data):
+        """
+        Extract data and save it to .csv-File.
+        :param data: collected tweet from twitter-streaming API
+        """
         all_data = json.loads(data)
         if str(all_data["user"]["lang"]) in ["de", "de-AT", "AT"]:
             print(all_data["text"])
@@ -41,13 +50,14 @@ class Listener(StreamListener):
             else:
                 city = ""
                 country = loc
-
             self.write_to_csv([username, time, date, city, tweet, flixbus, bahn, blablacar, country])
-
         return True
 
     @ staticmethod
     def check_keywords(keywords, text):
+        """
+        Checks whether at least one of the given keywords appears in the text.
+        """
         for word in keywords:
             if word in text.lower():
                 return 1
@@ -55,6 +65,9 @@ class Listener(StreamListener):
 
     @ staticmethod
     def write_to_csv(data):
+        """
+        Persists data in a csv.-File.
+        """
         if not "twitter_stream.csv" in os.listdir("/home/dennis/PycharmProjects/flix_data_analysis"):
             with open("/home/dennis/PycharmProjects/flix_data_analysis/twitter_stream.csv", "a") as stream_csv:
                 csv_writer = csv.writer(stream_csv, delimiter='\t')
@@ -63,9 +76,11 @@ class Listener(StreamListener):
             csv_writer = csv.writer(stream_csv, delimiter='\t')
             csv_writer.writerow(data)
 
+# login
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 
+# stream-data from twitter (only relevant keywords)
 twitterStream = Stream(auth, Listener())
 twitterStream.filter(track=["flixbus", "bahn", "fernbus", "zug", "db", "mitfahrgelegenheit", "blablacar", "diebahn",
                             "deutschebahn"])

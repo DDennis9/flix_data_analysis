@@ -6,10 +6,17 @@ import traceback
 from bs4 import BeautifulSoup
 import csv
 
+"""
+Script for scraping and persisting data from trustpilot.
+"""
+
 headers = ["username", "time", "date", "city", "tweet", "flixbus", "bahn", "blablacar", "country", "rating"]
 
 
 def write_to_csv(review):
+    """
+    Writes relevant data to a .csv-File.
+    """
     if not "trustpilot.csv" in os.listdir("/home/dennis/PycharmProjects/flix_data_analysis/Trustpilot_Responses"):
         with open("/home/dennis/PycharmProjects/flix_data_analysis/Trustpilot_Responses/trustpilot.csv", "a") as review_csv:
             csv_writer = csv.writer(review_csv, delimiter='\t')
@@ -20,6 +27,10 @@ def write_to_csv(review):
 
 
 def extract_review(response):
+    """
+    Separates the single reviews from one html-Page from trustpilot.com. Extracts relevant fields from each review and
+    persists the data in a .csv-File.
+    """
     soup = BeautifulSoup(response, 'html.parser')
     review_list = soup.find_all("div", class_="review pageable-item-js item  user-has-image   clearfix") + \
                   soup.find_all("div", class_="review pageable-item-js item   clearfix")
@@ -65,6 +76,7 @@ try:
             link = "https://de.trustpilot.com" + link
             print(link)
             page_no = page_no + 1
+            
 except Exception as e:
     print("except at " + str(page_no))
     print(traceback.print_exc())
