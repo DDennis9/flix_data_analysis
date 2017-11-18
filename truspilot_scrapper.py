@@ -76,7 +76,7 @@ try:
             link = "https://de.trustpilot.com" + link
             print(link)
             page_no = page_no + 1
-            
+
 except Exception as e:
     print("except at " + str(page_no))
     print(traceback.print_exc())

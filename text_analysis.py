@@ -32,6 +32,7 @@ for index, word in df_words.iterrows():
                 df.set_value(ind, word['Category'], review[word['Category']] + 1)
         else:
             word_list.append(0)
+    df[word['Word']] = word_list
 
 # save file
 df.to_csv("trustpilot_fb.csv", sep="\t")
