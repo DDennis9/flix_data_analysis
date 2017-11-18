@@ -2,6 +2,9 @@
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
+import csv
+import json
+import datetime
 
 # Variables that contains the user credentials to access Twitter API
 access_token = "3300412775-SvHfqR5eewVZIhFrGNExiejLneYtYkm8tOrqjBM"
@@ -10,28 +13,39 @@ consumer_key = "7ijOTBDcEqnS6Qp93ljzSFpRp"
 consumer_secret = "O53v77xDGN9FT0PL5zbFXIITQmNCuMoTYBKURYqmv5x9ugkOrU"
 
 
-# This is a basic listener that just prints received tweets to stdout.
-class StdOutListener(StreamListener):
-
-    def __init__(self):
-        self.counter = 0
+class Listener(StreamListener):
 
     def on_data(self, data):
-        print(data)
-        self.counter = self.counter + 1
+        all_data = json.loads(data)
+        print(all_data)
+        tweet = all_data["text"]
+        loc = all_data["user"]["location"]
+        username = all_data["user"]["screen_name"]
+        time = str(datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).time()).split('.')[0]
+        date = datetime.datetime.fromtimestamp(float(all_data["timestamp_ms"])/1000).date().strftime("%d.%m.%Y")
+        print(time)
+        print(date)
+
+        # check company mentioned
+        flixbus = self.check_keywords(["fernbus", "flixbus"], str(all_data).lower())
+        blablacar = self.check_keywords(["mitfahrgelegenheit", "blablacar"], str(all_data).lower())
+        bahn = self.check_keywords(["bahn", "zug", "db", "diebahn", "deutschebahn"], str(all_data).lower())
+
+        if "," in str(loc):
+            city, country = str(loc).split(",")
+
         return True
 
-    def on_error(self, status):
-        print(status)
+    @ staticmethod
+    def check_keywords(keywords, text):
+        for word in keywords:
+            if word in text.lower():
+                return True
+        return False
 
 
-if __name__ == '__main__':
+auth = OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
 
-    #This handles Twitter authetification and the connection to Twitter Streaming API
-    l = StdOutListener()
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-    stream = Stream(auth, l)
-
-    #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
-    stream.filter(track=['flixbus', 'bahn', 'fernbus'])
+twitterStream = Stream(auth, Listener())
+twitterStream.filter(track=["ich"])
